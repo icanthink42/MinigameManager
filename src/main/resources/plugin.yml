@@ -1,0 +1,86 @@
+name: MinigameManager
+version: '1.0-SNAPSHOT'
+main: org.icanthink.minigameManager.MinigameManager
+api-version: '1.21'
+
+commands:
+  hostgame:
+    description: Creates a joinable minigame without starting it immediately
+    usage: /hostgame <type> [players...]
+    permission: minigamemanager.start
+    aliases: [hg, host]
+
+  joinminigame:
+    description: Join a hosted minigame using a join code
+    usage: /joinminigame <code>
+    permission: minigamemanager.join
+    aliases: [jmg, joingame]
+
+  startgame:
+    description: Start a previously hosted minigame
+    usage: /startgame <code>
+    permission: minigamemanager.host
+    aliases: [sg, start]
+
+  startservergame:
+    description: Start a minigame with all online players in the server
+    usage: /startservergame <type>
+    permission: minigamemanager.server
+    aliases: [ssg, serverminigame, allgame]
+
+  listgames:
+    description: List all active and pending minigames
+    usage: /listgames
+    permission: minigamemanager.list
+    aliases: [lg, games]
+
+  stopgame:
+    description: Stop an active minigame
+    usage: /stopgame <id>
+    permission: minigamemanager.stop
+    aliases: [stop, endgame]
+
+  givecustomitem:
+    description: Give a custom item to a player
+    usage: /givecustomitem <item> [player]
+    permission: minigamemanager.giveitem
+    aliases: [gci, giveitem]
+
+  summoncustommob:
+    description: Summon a custom mob at a player's location
+    usage: /summoncustommob <mob> [player]
+    permission: minigamemanager.summonmob
+    aliases: [scm, summonmob]
+
+permissions:
+  minigamemanager.start:
+    description: Allows players to start minigames
+    default: op
+
+  minigamemanager.host:
+    description: Allows players to host and start minigames
+    default: op
+
+  minigamemanager.join:
+    description: Allows players to join minigames
+    default: true
+
+  minigamemanager.server:
+    description: Allows players to start server-wide minigames
+    default: op
+
+  minigamemanager.list:
+    description: Allows players to list minigames
+    default: true
+
+  minigamemanager.stop:
+    description: Allows players to stop minigames
+    default: op
+
+  minigamemanager.giveitem:
+    description: Allows players to give custom items to other players
+    default: op
+
+  minigamemanager.summonmob:
+    description: Allows players to summon custom mobs
+    default: op

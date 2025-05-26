@@ -3,12 +3,9 @@ package org.icanthink.minigameManager.features.items;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.NamespacedKey;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.icanthink.minigameManager.Minigame;
@@ -27,7 +24,6 @@ public abstract class CustomItem {
     protected final String name;
     protected final Material material;
     protected final List<String> lore;
-    protected final UUID itemId;
     private Consumer<ItemMeta> metaCustomizer;
     private static final NamespacedKey ITEM_ID_KEY = new NamespacedKey(MinigameManager.plugin, "custom_item_id");
 
@@ -41,7 +37,6 @@ public abstract class CustomItem {
         this.name = getName();
         this.material = getMaterial();
         this.lore = getLore();
-        this.itemId = UUID.randomUUID();
     }
 
     /**
@@ -77,7 +72,7 @@ public abstract class CustomItem {
         if (meta != null) {
             meta.setDisplayName(name);
             meta.setLore(lore);
-            meta.getPersistentDataContainer().set(ITEM_ID_KEY, PersistentDataType.STRING, itemId.toString());
+            meta.getPersistentDataContainer().set(ITEM_ID_KEY, PersistentDataType.STRING, getItemId().toString());
             if (metaCustomizer != null) {
                 metaCustomizer.accept(meta);
             }
@@ -89,11 +84,15 @@ public abstract class CustomItem {
 
     /**
      * Get the unique ID of this custom item.
+     * This ID is deterministically generated from the class name,
+     * ensuring all instances of the same item type share the same ID.
      *
      * @return The item's UUID
      */
     public UUID getItemId() {
-        return itemId;
+        // Use the class name as a namespace to generate a deterministic UUID
+        // This ensures all instances of the same item type have the same ID
+        return UUID.nameUUIDFromBytes(getClass().getName().getBytes());
     }
 
     /**
@@ -108,62 +107,7 @@ public abstract class CustomItem {
         String storedId = itemStack.getItemMeta().getPersistentDataContainer()
             .get(ITEM_ID_KEY, PersistentDataType.STRING);
 
-        return storedId != null && storedId.equals(itemId.toString());
-    }
-
-    /**
-     * Called when a player left-clicks with this item.
-     * Override this method to implement custom left-click behavior.
-     *
-     * @param event The interaction event
-     * @return true if the event should be cancelled
-     */
-    public boolean onLeftClick(PlayerInteractEvent event) {
-        return false;
-    }
-
-    /**
-     * Called when a player right-clicks with this item.
-     * Override this method to implement custom right-click behavior.
-     *
-     * @param event The interaction event
-     * @return true if the event should be cancelled
-     */
-    public boolean onRightClick(PlayerInteractEvent event) {
-        return false;
-    }
-
-    /**
-     * Called when a player attempts to place this item as a block.
-     * Override this method to implement custom placement behavior.
-     *
-     * @param event The block place event
-     * @return true if the event should be cancelled
-     */
-    public boolean onPlace(BlockPlaceEvent event) {
-        return false;
-    }
-
-    /**
-     * Called when this item enters a player's inventory.
-     * Override this method to implement custom behavior when the item is picked up.
-     *
-     * @param event The inventory click event
-     * @return true if the event should be cancelled
-     */
-    public boolean onEnterInventory(InventoryClickEvent event) {
-        return false;
-    }
-
-    /**
-     * Called when this item leaves a player's inventory.
-     * Override this method to implement custom behavior when the item is dropped or moved.
-     *
-     * @param event The inventory click event
-     * @return true if the event should be cancelled
-     */
-    public boolean onLeaveInventory(InventoryClickEvent event) {
-        return false;
+        return storedId != null && storedId.equals(getItemId().toString());
     }
 
     /**

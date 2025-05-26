@@ -14,6 +14,12 @@ import org.icanthink.minigameManager.features.items.PlayerTracker;
 import org.icanthink.minigameManager.features.items.ShuffleSword;
 import org.icanthink.minigameManager.features.items.BrazilStick;
 import org.icanthink.minigameManager.features.items.CombatLog;
+import org.icanthink.minigameManager.features.items.WishItem;
+import org.icanthink.minigameManager.features.items.CursedPumpkinItem;
+import org.icanthink.minigameManager.features.items.KnockbackStick;
+import org.icanthink.minigameManager.features.items.Shoes;
+import org.icanthink.minigameManager.features.items.FlyingShield;
+import org.icanthink.minigameManager.utils.ChatGPTClient;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,8 +32,12 @@ import java.util.Map;
  */
 public class GiveCustomItemCommand implements CommandExecutor {
     public static final Map<String, Class<? extends CustomItem>> availableItems = new HashMap<>();
+    private final ChatGPTClient chatGPTClient;
 
     public GiveCustomItemCommand() {
+        // Initialize ChatGPT client
+        this.chatGPTClient = new ChatGPTClient(MinigameManager.plugin.getConfig());
+
         // Register available custom items (if not already registered)
         if (availableItems.isEmpty()) {
             availableItems.put("teleportrod", TeleportRod.class);
@@ -35,6 +45,11 @@ public class GiveCustomItemCommand implements CommandExecutor {
             availableItems.put("shufflesword", ShuffleSword.class);
             availableItems.put("brazilstick", BrazilStick.class);
             availableItems.put("combatlog", CombatLog.class);
+            availableItems.put("wish", WishItem.class);
+            availableItems.put("cursedpumpkin", CursedPumpkinItem.class);
+            availableItems.put("knockbackstick", KnockbackStick.class);
+            availableItems.put("shoes", Shoes.class);
+            availableItems.put("flyingshield", FlyingShield.class);
         }
     }
 
@@ -90,6 +105,7 @@ public class GiveCustomItemCommand implements CommandExecutor {
 
         // Give the item to the player
         boolean success = targetMinigame.getItemManager().giveItem(target, itemClass);
+
         if (success) {
             sender.sendMessage(ChatColor.GREEN + "Gave " + itemName + " to " + target.getName());
             if (sender != target) {

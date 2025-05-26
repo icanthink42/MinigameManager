@@ -56,7 +56,10 @@ public class BrazilStick extends CustomItem implements Listener {
         return LORE;
     }
 
+    @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player)) return;
 
         Player sender = (Player) event.getDamager();
         Player target = (Player) event.getEntity();

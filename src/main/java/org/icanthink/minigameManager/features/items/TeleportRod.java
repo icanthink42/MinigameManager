@@ -11,6 +11,7 @@ import org.icanthink.minigameManager.MinigameManager;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.ChatColor;
+import org.bukkit.event.EventHandler;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,8 +58,11 @@ public class TeleportRod extends CustomItem implements Listener {
         return LORE;
     }
 
-    @Override
-    public boolean onRightClick(PlayerInteractEvent event) {
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!event.getAction().isRightClick()) return;
+        if (!isInstance(event.getItem())) return;
+
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
         long currentTime = System.currentTimeMillis();
@@ -72,7 +76,7 @@ public class TeleportRod extends CustomItem implements Listener {
                         ChatColor.RED + "You must wait " + String.format("%.1f", timeLeft / 1000.0) + " seconds before using the Teleport Rod again!"
                     )
                 );
-                return false;
+                return;
             }
         }
 
@@ -88,6 +92,6 @@ public class TeleportRod extends CustomItem implements Listener {
         // Update last usage time
         lastUsage.put(playerId, currentTime);
 
-        return true;
+        event.setCancelled(true);
     }
 }

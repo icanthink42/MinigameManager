@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.icanthink.minigameManager.Minigame;
 import org.icanthink.minigameManager.MinigameManager;
-import org.icanthink.minigameManager.games.GroupHardcore;
+import org.icanthink.minigameManager.games.grouphardcore.GroupHardcore;
 
 import java.util.UUID;
 

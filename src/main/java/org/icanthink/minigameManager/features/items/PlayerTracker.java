@@ -12,6 +12,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.ArrayList;
  * A custom item that tracks players in the minigame.
  * Right-click to cycle through players.
  */
-public class PlayerTracker extends CustomItem {
+public class PlayerTracker extends CustomItem implements Listener {
     private static final String NAME = "§ePlayer Tracker";
     private static final Material MATERIAL = Material.COMPASS;
     private static final List<String> LORE = Arrays.asList(
@@ -43,28 +45,8 @@ public class PlayerTracker extends CustomItem {
         });
         // Start updating compass target every tick
         taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(MinigameManager.plugin, this::updateAllCompasses, 0L, 1L);
-    }
-
-    private void updateAllCompasses() {
-        if (!minigame.isRunning()) return;
-        if (currentTarget == null || !currentTarget.isOnline() || !minigame.getPlayers().contains(currentTarget)) {
-            return;
-        }
-
-        Location currentLocation = currentTarget.getLocation();
-
-        // Only update if target has moved more than 5 blocks
-        if (lastTargetLocation == null ||
-            currentLocation.distanceSquared(lastTargetLocation) > 25) {
-            lastTargetLocation = currentLocation;
-            for (Player player : minigame.getPlayers()) {
-                for (ItemStack item : player.getInventory().getContents()) {
-                    if (item != null && isInstance(item)) {
-                        updateCompassTarget(item);
-                    }
-                }
-            }
-        }
+        // Register event listener
+        MinigameManager.plugin.getServer().getPluginManager().registerEvents(this, MinigameManager.plugin);
     }
 
     @Override
@@ -105,38 +87,54 @@ public class PlayerTracker extends CustomItem {
         }
     }
 
-    @Override
-    public boolean onRightClick(PlayerInteractEvent event) {
-        if (!minigame.isRunning()) return false;
-        if (!minigame.getPlayers().contains(event.getPlayer())) return false;
+    private void updateAllCompasses() {
+        if (!minigame.isRunning()) return;
+        if (currentTarget == null || !currentTarget.isOnline() || !minigame.getPlayers().contains(currentTarget)) {
+            return;
+        }
+
+        Location currentLocation = currentTarget.getLocation();
+
+        // Only update if target has moved more than 5 blocks
+        if (lastTargetLocation == null ||
+            currentLocation.distanceSquared(lastTargetLocation) > 25) {
+            lastTargetLocation = currentLocation;
+            for (Player player : minigame.getPlayers()) {
+                for (ItemStack item : player.getInventory().getContents()) {
+                    if (item != null && isInstance(item)) {
+                        updateCompassTarget(item);
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!event.getAction().isRightClick()) return;
+        if (!isInstance(event.getItem())) return;
 
         Player player = event.getPlayer();
-        ItemStack item = event.getItem();
-        if (item == null) return false;
-
         List<Player> players = new ArrayList<>(minigame.getPlayers());
-        // Remove the current player from the list
-        players.remove(player);
+        players.remove(player); // Don't track yourself
 
         if (players.isEmpty()) {
             player.sendMessage("§cNo other players to track!");
-            currentTarget = null;
-            return true;
+            return;
         }
 
-        // Cycle to next player
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         currentTarget = players.get(currentPlayerIndex);
-
-        // Update compass target
-        updateCompassTarget(item);
-
-        // Play a sound effect
+        player.sendMessage("§eNow tracking: §f" + currentTarget.getName());
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 2.0f);
 
-        // Send message
-        player.sendMessage("§eNow tracking: §f" + currentTarget.getName());
+        // Update compass immediately
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item != null && isInstance(item)) {
+                updateCompassTarget(item);
+            }
+        }
 
-        return true;
+        event.setCancelled(true);
     }
 }

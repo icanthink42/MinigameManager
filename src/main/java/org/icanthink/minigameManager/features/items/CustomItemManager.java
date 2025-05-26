@@ -20,7 +20,7 @@ import java.util.List;
  * Handles registration and event handling for custom items.
  */
 public class CustomItemManager extends Feature implements Listener {
-    private final List<CustomItem> customItems;
+    protected final List<CustomItem> customItems;
 
     public CustomItemManager(Minigame minigame) {
         super(minigame);
@@ -29,29 +29,12 @@ public class CustomItemManager extends Feature implements Listener {
     }
 
     /**
-     * Register a custom item class with this manager.
-     * Creates a new instance of the item and registers it.
+     * Register a custom item with this manager.
      *
-     * @param itemClass The class of the custom item to register
-     * @return The created and registered custom item instance
+     * @param item The custom item to register
      */
-    public <T extends CustomItem> T registerItem(Class<T> itemClass) {
-        try {
-            T item = itemClass.getDeclaredConstructor(Minigame.class).newInstance(minigame);
-            customItems.add(item);
-            return item;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create custom item instance", e);
-        }
-    }
-
-    /**
-     * Unregister a custom item from this manager.
-     *
-     * @param item The custom item to unregister
-     */
-    public void unregisterItem(CustomItem item) {
-        customItems.remove(item);
+    public void registerItem(CustomItem item) {
+        customItems.add(item);
     }
 
     /**
@@ -59,8 +42,40 @@ public class CustomItemManager extends Feature implements Listener {
      *
      * @return List of registered custom items
      */
-    public List<CustomItem> getCustomItems() {
+    public List<CustomItem> getItems() {
         return customItems;
+    }
+
+    /**
+     * Find a custom item instance that matches the given ItemStack.
+     *
+     * @param itemStack The ItemStack to check
+     * @return The matching CustomItem, or null if none found
+     */
+    public CustomItem getCustomItem(ItemStack itemStack) {
+        if (itemStack == null) return null;
+
+        for (CustomItem item : customItems) {
+            if (item.isInstance(itemStack)) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Create an ItemStack for a custom item by its class.
+     *
+     * @param itemClass The class of the custom item
+     * @return The created ItemStack, or null if the item class isn't registered
+     */
+    public ItemStack createItem(Class<? extends CustomItem> itemClass) {
+        for (CustomItem item : customItems) {
+            if (item.getClass() == itemClass) {
+                return item.createItem();
+            }
+        }
+        return null;
     }
 
     /**
@@ -81,9 +96,7 @@ public class CustomItemManager extends Feature implements Listener {
             customItems.add(item);
             ItemStack itemStack = item.createItem();
             return player.getInventory().addItem(itemStack).isEmpty();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create custom item instance", e);
-        }
+        } catch (Exception e) { throw new RuntimeException("Failed to create custom item instance", e); }
     }
 
     /**
@@ -97,80 +110,28 @@ public class CustomItemManager extends Feature implements Listener {
         }
     }
 
-    /**
-     * Find a custom item by its ItemStack.
-     *
-     * @param itemStack The ItemStack to find
-     * @return The matching CustomItem, or null if not found
-     */
-    private CustomItem findCustomItem(ItemStack itemStack) {
-        if (itemStack == null) return null;
-
-        for (CustomItem item : customItems) {
-            if (item.isInstance(itemStack)) {
-                return item;
-            }
-        }
-        return null;
-    }
-
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!minigame.isRunning()) return;
+        // Skip if player not in minigame
         if (!minigame.getPlayers().contains(event.getPlayer())) return;
 
-        CustomItem customItem = findCustomItem(event.getItem());
-        if (customItem != null) {
-            boolean shouldCancel = false;
-
-            if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
-                shouldCancel = customItem.onLeftClick(event);
-            } else if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-                shouldCancel = customItem.onRightClick(event);
-            }
-
-            if (shouldCancel) {
-                event.setCancelled(true);
-            }
-        }
+        // Each item now handles its own events through their own Listener implementations
     }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (!minigame.isRunning()) return;
+        // Skip if player not in minigame
         if (!minigame.getPlayers().contains(event.getPlayer())) return;
 
-        CustomItem customItem = findCustomItem(event.getItemInHand());
-        if (customItem != null) {
-            boolean shouldCancel = customItem.onPlace(event);
-            if (shouldCancel) {
-                event.setCancelled(true);
-            }
-        }
+        // Each item now handles its own events through their own Listener implementations
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!minigame.isRunning()) return;
-        if (!(event.getWhoClicked() instanceof Player)) return;
-        if (!minigame.getPlayers().contains(event.getWhoClicked())) return;
+        // Skip if not a player or player not in minigame
+        if (!(event.getWhoClicked() instanceof org.bukkit.entity.Player)) return;
+        if (!minigame.getPlayers().contains((org.bukkit.entity.Player) event.getWhoClicked())) return;
 
-        // Check if the clicked item is a custom item
-        CustomItem clickedItem = findCustomItem(event.getCurrentItem());
-        if (clickedItem != null) {
-            boolean shouldCancel = clickedItem.onLeaveInventory(event);
-            if (shouldCancel) {
-                event.setCancelled(true);
-            }
-        }
-
-        // Check if the cursor item is a custom item
-        CustomItem cursorItem = findCustomItem(event.getCursor());
-        if (cursorItem != null) {
-            boolean shouldCancel = cursorItem.onEnterInventory(event);
-            if (shouldCancel) {
-                event.setCancelled(true);
-            }
-        }
+        // Each item now handles its own events through their own Listener implementations
     }
 }

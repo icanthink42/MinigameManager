@@ -52,6 +52,18 @@ commands:
     permission: minigamemanager.summonmob
     aliases: [scm, summonmob]
 
+  triggerevent:
+    description: Manually trigger a random event in a GroupHardcore game
+    usage: /triggerevent <game_id>
+    permission: minigamemanager.triggerevent
+    aliases: [te, event]
+
+  playtrivia:
+    description: Start a trivia game in your current GroupHardcore game
+    usage: /playtrivia
+    permission: minigamemanager.playtrivia
+    aliases: [trivia]
+
 permissions:
   minigamemanager.start:
     description: Allows players to start minigames
@@ -84,3 +96,11 @@ permissions:
   minigamemanager.summonmob:
     description: Allows players to summon custom mobs
     default: op
+
+  minigamemanager.triggerevent:
+    description: Allows players to manually trigger game events
+    default: op
+
+  minigamemanager.playtrivia:
+    description: Allows players to start trivia games
+    default: true

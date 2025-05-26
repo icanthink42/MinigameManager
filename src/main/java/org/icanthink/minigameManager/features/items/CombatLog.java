@@ -16,6 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.icanthink.minigameManager.Minigame;
 import org.icanthink.minigameManager.MinigameManager;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,6 +56,16 @@ public class CombatLog extends CustomItem implements Listener {
     @Override
     protected List<String> getLore() {
         return LORE;
+    }
+
+    @EventHandler
+    public boolean onRightClick(PlayerInteractEvent event) {
+        ItemStack item = event.getItem();
+        if (item != null && isInstance(item)) {
+            event.setCancelled(true);
+            return true;
+        }
+        return false;
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -113,6 +124,16 @@ public class CombatLog extends CustomItem implements Listener {
             player.getInventory().setItemInMainHand(null);
         } else {
             player.getInventory().setItemInOffHand(null);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!event.getAction().isRightClick()) return;
+
+        ItemStack item = event.getItem();
+        if (item != null && isInstance(item)) {
+            event.setCancelled(true);
         }
     }
 }

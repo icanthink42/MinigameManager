@@ -14,6 +14,7 @@ import org.icanthink.minigameManager.features.mobs.CustomMob;
 import org.icanthink.minigameManager.features.mobs.CustomMobManager;
 import org.icanthink.minigameManager.features.mobs.InvincibleZombie;
 import org.icanthink.minigameManager.features.mobs.SpecialDog;
+import org.icanthink.minigameManager.features.mobs.BusinessVillager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ public class SummonCustomMobCommand implements CommandExecutor {
         if (availableMobs.isEmpty()) {
             availableMobs.put("invinciblezombie", InvincibleZombie.class);
             availableMobs.put("specialdog", SpecialDog.class);
+            availableMobs.put("mrbusiness", BusinessVillager.class);
         }
     }
 
@@ -58,36 +60,45 @@ public class SummonCustomMobCommand implements CommandExecutor {
 
         // Get spawn location
         Location spawnLocation;
-        if (args.length >= 4) {
+        Player targetPlayer;
+        Minigame targetMinigame = null;
+
+        if (!(sender instanceof Player)) {
+            if (args.length < 4) {
+                sender.sendMessage(ChatColor.RED + "Console must specify coordinates: /summoncustommob <mob> <x> <y> <z>");
+                return false;
+            }
             try {
                 double x = Double.parseDouble(args[1]);
                 double y = Double.parseDouble(args[2]);
                 double z = Double.parseDouble(args[3]);
-
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(ChatColor.RED + "You must be a player to use coordinates.");
+                spawnLocation = new Location(Bukkit.getWorlds().get(0), x, y, z);
+            } catch (NumberFormatException e) {
+                sender.sendMessage(ChatColor.RED + "Invalid coordinates!");
+                return false;
+            }
+            targetPlayer = null;
+        } else {
+            targetPlayer = (Player) sender;
+            if (args.length >= 4) {
+                try {
+                    double x = Double.parseDouble(args[1]);
+                    double y = Double.parseDouble(args[2]);
+                    double z = Double.parseDouble(args[3]);
+                    spawnLocation = new Location(targetPlayer.getWorld(), x, y, z);
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "Invalid coordinates!");
                     return false;
                 }
-                Player player = (Player) sender;
-                spawnLocation = new Location(player.getWorld(), x, y, z);
-            } catch (NumberFormatException e) {
-                sender.sendMessage(ChatColor.RED + "Invalid coordinates. Please provide valid numbers.");
-                return false;
+            } else {
+                spawnLocation = targetPlayer.getLocation();
             }
-        } else {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "You must be a player to use this command without coordinates.");
-                return false;
-            }
-            spawnLocation = ((Player) sender).getLocation();
         }
 
-        // Find an active minigame that the sender is in
-        Minigame targetMinigame = null;
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
+        // Find the minigame the player is in
+        if (targetPlayer != null) {
             for (Minigame minigame : MinigameManager.plugin.getStartMinigameCommand().getActiveMinigames().values()) {
-                if (minigame.getPlayers().contains(player)) {
+                if (minigame.getPlayers().contains(targetPlayer)) {
                     targetMinigame = minigame;
                     break;
                 }
@@ -95,15 +106,13 @@ public class SummonCustomMobCommand implements CommandExecutor {
         }
 
         if (targetMinigame == null) {
-            sender.sendMessage(ChatColor.RED + "You must be in an active minigame to summon custom mobs.");
+            sender.sendMessage(ChatColor.RED + "No active minigame found! The mob will be spawned without minigame features.");
             return false;
         }
 
         try {
-            // Create and spawn the custom mob using the CustomMobManager
-            LivingEntity entity = (LivingEntity) spawnLocation.getWorld().spawnEntity(spawnLocation, mobClass.getDeclaredConstructor(Minigame.class).newInstance(targetMinigame).entityType);
-            CustomMobManager mobManager = targetMinigame.getMobManager();
-            mobManager.spawnMob(entity, mobClass);
+            // Spawn the mob using the CustomMobManager
+            targetMinigame.getMobManager().spawnMob(spawnLocation, mobClass);
 
             sender.sendMessage(ChatColor.GREEN + "Summoned " + mobName + " at " +
                 String.format("%.1f, %.1f, %.1f", spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ()));

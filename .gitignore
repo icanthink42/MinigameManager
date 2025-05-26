@@ -3,3 +3,4 @@
 .vscode
 gradle/
 build/
+src/main/resources/config.yml

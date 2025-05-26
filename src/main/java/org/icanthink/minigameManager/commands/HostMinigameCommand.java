@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.icanthink.minigameManager.Minigame;
 import org.icanthink.minigameManager.MinigameManager;
-import org.icanthink.minigameManager.games.GroupHardcore;
+import org.icanthink.minigameManager.games.grouphardcore.GroupHardcore;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -10,6 +10,7 @@ import org.icanthink.minigameManager.commands.StartServerMinigameCommand;
 import org.icanthink.minigameManager.commands.StopGameCommand;
 import org.icanthink.minigameManager.commands.GiveCustomItemCommand;
 import org.icanthink.minigameManager.commands.SummonCustomMobCommand;
+import org.icanthink.minigameManager.commands.TriggerEventCommand;
 import org.icanthink.minigameManager.tabcompleters.MinigameTabCompleter;
 
 public final class MinigameManager extends JavaPlugin {
@@ -23,12 +24,16 @@ public final class MinigameManager extends JavaPlugin {
     private StopGameCommand stopGameCommand;
     private GiveCustomItemCommand giveCustomItemCommand;
     private SummonCustomMobCommand summonCustomMobCommand;
+    private TriggerEventCommand triggerEventCommand;
     private MinigameTabCompleter tabCompleter;
     public static MinigameManager plugin;
 
     @Override
     public void onEnable() {
         plugin = this;
+
+        // Save default config if it doesn't exist
+        saveDefaultConfig();
 
         // Initialize commands
         startMinigameCommand = new StartMinigameCommand();
@@ -40,6 +45,7 @@ public final class MinigameManager extends JavaPlugin {
         stopGameCommand = new StopGameCommand();
         giveCustomItemCommand = new GiveCustomItemCommand();
         summonCustomMobCommand = new SummonCustomMobCommand();
+        triggerEventCommand = new TriggerEventCommand();
 
         // Initialize tab completer
         tabCompleter = new MinigameTabCompleter();
@@ -53,6 +59,7 @@ public final class MinigameManager extends JavaPlugin {
         getCommand("stopgame").setExecutor(stopGameCommand);
         getCommand("givecustomitem").setExecutor(giveCustomItemCommand);
         getCommand("summoncustommob").setExecutor(summonCustomMobCommand);
+        getCommand("triggerevent").setExecutor(triggerEventCommand);
 
         // Register tab completers
         getCommand("hostgame").setTabCompleter(tabCompleter);
@@ -62,6 +69,7 @@ public final class MinigameManager extends JavaPlugin {
         getCommand("stopgame").setTabCompleter(tabCompleter);
         getCommand("givecustomitem").setTabCompleter(tabCompleter);
         getCommand("summoncustommob").setTabCompleter(tabCompleter);
+        getCommand("triggerevent").setTabCompleter(tabCompleter);
 
         // Log plugin startup
         getLogger().info("MinigameManager has been enabled!");
@@ -69,6 +77,9 @@ public final class MinigameManager extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Save config before disabling
+        saveConfig();
+
         // Plugin shutdown logic
         getLogger().info("MinigameManager has been disabled!");
     }
@@ -152,6 +163,15 @@ public final class MinigameManager extends JavaPlugin {
      */
     public SummonCustomMobCommand getSummonCustomMobCommand() {
         return summonCustomMobCommand;
+    }
+
+    /**
+     * Get the TriggerEventCommand instance
+     *
+     * @return The TriggerEventCommand instance
+     */
+    public TriggerEventCommand getTriggerEventCommand() {
+        return triggerEventCommand;
     }
 
     /**
